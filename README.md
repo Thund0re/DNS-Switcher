@@ -106,10 +106,3 @@ App to switch your local DNS to Cloudflar, Google etc..
 
 ***
 
-### Contributing
-
-Feel free to fork and improve the code. Pull requests are welcome—especially for better cross-platform compatibility, additional features, or UI enhancements.
-
-***
-
-**Fastest DNS Changer** provides a simple, fast, and visually modern way to manage your DNS settings across operating systems. Whether you’re optimizing for speed, privacy, or content filtering, this app puts you in control with just a few clicks.
