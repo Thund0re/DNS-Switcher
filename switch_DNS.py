@@ -1,4 +1,5 @@
-# dns_changer_app.py
+#!/usr/bin/env python3
+# dns_switcher.py
 
 import tkinter as tk
 from tkinter import scrolledtext
@@ -12,6 +13,7 @@ import sys
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from ttkbootstrap.dialogs import Messagebox
+from ttkbootstrap.scrolled import ScrolledFrame
 
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -104,7 +106,7 @@ class DNSApp(ttk.Window):
         # Initialize the ttkbootstrap window with a theme
         super().__init__(themename="darkly")
         self.title("Fastest DNS Changer")
-        self.geometry("500x600")
+        self.geometry("550x750")
         self.resizable(False, False)
         
         self.dns_providers = {
@@ -112,7 +114,31 @@ class DNSApp(ttk.Window):
             "Google": ["8.8.8.8", "8.8.4.4"],
             "Quad9": ["9.9.9.9", "149.112.112.112"],
             "OpenDNS": ["208.67.222.222", "208.67.220.220"],
-            "AdGuard": ["94.140.14.14", "94.140.15.15"]
+            "AdGuard": ["94.140.14.14", "94.140.15.15"],
+            "CleanBrowsing": ["185.228.168.9", "185.228.169.9"],
+            "Control D": ["76.76.2.0", "76.76.10.0"],
+            "DNS.SB": ["185.222.222.222", "45.11.45.11"],
+            "DNS0.EU": ["193.110.81.254", "185.253.5.254"],
+            "Mullvad": ["194.242.2.2"],
+            "UncensoredDNS": ["91.239.100.100", "89.233.43.71"],
+            "Comcast": ["75.75.75.75", "75.75.76.76"],
+            "Verisign": ["64.6.64.6", "64.6.65.6"],
+            "Yandex": ["77.88.8.8", "77.88.8.1"],
+            "Freifunk München": ["5.1.66.255", "185.150.99.255"],
+            "French Data Network": ["80.67.169.12", "80.67.169.40"],
+            "NWPS.fi": ["95.217.11.63", "135.181.103.31"],
+            "Alternate DNS": ["76.76.19.19", "76.223.100.101"],
+            "Digitalcourage": ["5.9.164.112"],
+            "Njalla": ["95.215.19.53"],
+            "CMRG DNS": ["199.58.83.33"],
+            "Lightning Wire Labs": ["81.3.27.54"],
+            "Applied Privacy": ["146.255.56.98"],
+            "Digitale Gesellschaft": ["185.95.218.42", "185.95.218.43"],
+            "FlokiNET": ["185.246.188.51", "185.247.225.17"],
+            "GetDNS": ["185.49.141.37"],
+            "DNS4EU": ["86.54.11.100", "86.54.11.200"],
+            "LinuxPatch": ["45.80.1.6"],
+            "Restena Foundation": ["158.64.1.29"]
         }
         
         self.current_primary_dns = tk.StringVar(self)
@@ -127,7 +153,7 @@ class DNSApp(ttk.Window):
         main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        title_label = ttk.Label(main_frame, text="Fastest DNS Changer", font=("Helvetica", 16, "bold"), bootstyle="danger")
+        title_label = ttk.Label(main_frame, text="Fast DNS Changer", font=("Helvetica", 16, "bold"), bootstyle="light")
         title_label.pack(pady=(0, 20))
 
         # Current DNS display with updated styling
@@ -142,16 +168,24 @@ class DNSApp(ttk.Window):
         secondary_label = ttk.Label(current_frame, textvariable=self.current_secondary_dns)
         secondary_label.grid(row=1, column=1, sticky="w", padx=5, pady=2)
         
-        # Action buttons frame
-        button_frame = ttk.Frame(main_frame)
-        button_frame.pack(pady=10)
-        
-        # Buttons for changing DNS
-        ttk.Button(button_frame, text="Set Cloudflare", command=lambda: self.apply_dns("Cloudflare"), bootstyle="success").pack(fill=tk.X, pady=5)
-        ttk.Button(button_frame, text="Set Google", command=lambda: self.apply_dns("Google"), bootstyle="primary").pack(fill=tk.X, pady=5)
-        ttk.Button(button_frame, text="Set Quad9", command=lambda: self.apply_dns("Quad9"), bootstyle="info").pack(fill=tk.X, pady=5)
-        ttk.Button(button_frame, text="Set OpenDNS", command=lambda: self.apply_dns("OpenDNS"), bootstyle="secondary").pack(fill=tk.X, pady=5)
-        ttk.Button(button_frame, text="Set AdGuard", command=lambda: self.apply_dns("AdGuard"), bootstyle="warning").pack(fill=tk.X, pady=5)
+        # DNS Providers Frame
+        providers_frame = ttk.Labelframe(main_frame, text="DNS Providers", padding=10, bootstyle="info")
+        providers_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 10))
+
+        # Scrollable frame for the buttons
+        scroll_frame = ScrolledFrame(providers_frame, autohide=True)
+        scroll_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Create a grid of buttons for all DNS providers
+        COLUMNS = 3
+        row, col = 0, 0
+        for provider_name in self.dns_providers:
+            button = ttk.Button(scroll_frame, text=provider_name, command=lambda p=provider_name: self.apply_dns(p), bootstyle="outline")
+            button.grid(row=row, column=col, padx=5, pady=5, sticky="ew")
+            col += 1
+            if col >= COLUMNS:
+                col = 0
+                row += 1
         
         # Reset button
         reset_button = ttk.Button(main_frame, text="Reset to Default ISP DNS", command=self.reset_dns, bootstyle="success")
@@ -189,7 +223,11 @@ class DNSApp(ttk.Window):
         
         self.log(f"Attempting to set DNS to {provider_name}...")
         
-        success = set_dns(dns_ips[0], dns_ips[1])
+        # Handle providers with only one DNS server
+        primary_dns = dns_ips[0]
+        secondary_dns = dns_ips[1] if len(dns_ips) > 1 else primary_dns
+        
+        success = set_dns(primary_dns, secondary_dns)
         
         if success:
             Messagebox.show_info("Success", f"DNS has been set to {provider_name} successfully!")
